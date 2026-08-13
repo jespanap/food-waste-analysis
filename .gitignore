@@ -1,0 +1,18 @@
+# Checkpoints del Trainer (pesan y se regeneran al correr el notebook)
+distilbert-lora-fikwaste/
+**/checkpoint-*/
+
+# El adaptador LoRA final SÍ se sube (son pocos MB) — no lo ignoramos:
+# distilbert-lora-fikwaste-adapter/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini

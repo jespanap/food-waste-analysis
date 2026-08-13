@@ -1,0 +1,4 @@
+ID,service,area,capacity,has_glass,glass_volume,has_paper,paper_volume,has_plastic,plastic_volume,has_undifferentiated,undifferentiated_volume,start,end
+1,Dinner,58.15,50,0,,1,0.08,1,0.08,1,0.08,06/02/2019,03/03/2019
+2,Dinner,25.52,50,1,0.06,1,0.06,1,0.06,1,0.08,12/03/2019,02/04/2019
+3,Breakfast and Dinner,35.23,40,1,0.08,1,0.06,1,0.08,1,0.08,16/04/2019,15/05/2019
