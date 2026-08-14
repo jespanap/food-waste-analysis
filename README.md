@@ -1,6 +1,8 @@
-# Fine-tuning de DistilBERT sobre FIKWaste
+# ¿Podrían los restaurantes predecir la cantidad de residuos orgánicos a tiempo para sacar algún beneficio de esto?
 
-Este proyecto usa FIKWaste para clasificar el aumento de residuos de un contenedor durante la siguiente hora en tres categorías: `LOW`, `MEDIUM` y `HIGH`.
+## Fine-tuning de DistilBERT sobre FIKWaste
+
+Este sistema ayuda a restaurantes a anticipar si el nivel de residuos de un contenedor aumentará poco, moderadamente o mucho durante la siguiente hora, y se busca que con esta respuesta puedan hacer algo con esa comida restante, ya sea para donar o vender a un menor precio, y no se deperdicie. Usamos FIKWaste para clasificar el aumento de residuos de un contenedor durante la siguiente hora en tres categorías: `LOW`, `MEDIUM` y `HIGH`.
 
 ## Cómo correrlo
 
