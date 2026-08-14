@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SI4006 · M1 — El bote de basura que aprendió a leer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c1a15;
+    --ink-2:#26231c;
+    --paper:#f3eedf;
+    --paper-dim:#e7e0cc;
+    --paper-line:#d8cfb2;
+    --mustard:#cf9a2e;
+    --mustard-dim:#8a6a25;
+    --olive:#6d7e46;
+    --olive-dim:#4f5c33;
+    --tomato:#c1432d;
+    --steel:#9aa3ad;
+    --text-hi:#f6f1e3;
+    --text-mid:#c9c0a6;
+    --text-low:#8c8368;
+    --radius:2px;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Work Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text-hi);
+    font-family:var(--body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--mustard);color:var(--ink);}
+
+  a{color:var(--mustard);}
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px;}
+
+  /* ---------- texture ---------- */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:
+      radial-gradient(circle at 20% 15%, rgba(207,154,46,0.05), transparent 40%),
+      radial-gradient(circle at 85% 75%, rgba(109,126,70,0.06), transparent 45%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ---------- top rail ---------- */
+  .rail{
+    position:sticky;top:0;z-index:50;
+    background:var(--ink);
+    border-bottom:1px solid var(--paper-line);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 28px;
+  }
+  .rail-brand{
+    font-family:var(--mono);
+    font-size:12px;letter-spacing:.12em;
+    color:var(--text-mid);
+    display:flex;gap:10px;align-items:center;
+  }
+  .rail-brand .dot{width:7px;height:7px;border-radius:50%;background:var(--olive);animation:pulse 2.4s infinite ease-in-out;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+  .rail-nav{display:none;gap:22px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--text-mid);}
+  .rail-nav a{color:var(--text-mid);text-decoration:none;border-bottom:1px solid transparent;}
+  .rail-nav a:hover{color:var(--mustard);border-color:var(--mustard);}
+  @media(min-width:760px){.rail-nav{display:flex;}}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;z-index:1;
+    padding:88px 0 64px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--olive);
+    margin:0 0 18px;
+  }
+  .eyebrow::before{content:"◆ ";color:var(--mustard);}
+  h1.headline{
+    font-family:var(--display);
+    font-weight:400;
+    font-size:clamp(40px,7vw,74px);
+    line-height:0.98;
+    letter-spacing:.005em;
+    margin:0 0 22px;
+    color:var(--text-hi);
+    max-width:15ch;
+  }
+  h1.headline em{font-style:normal;color:var(--mustard);}
+  .hero-sub{
+    font-size:18px;
+    color:var(--text-mid);
+    max-width:56ch;
+    margin:0 0 36px;
+  }
+  .hero-meta{
+    display:flex;flex-wrap:wrap;gap:10px;
+    font-family:var(--mono);font-size:12px;color:var(--text-low);
+  }
+  .chip{
+    border:1px solid var(--paper-line);
+    padding:5px 10px;
+    border-radius:var(--radius);
+    background:rgba(243,238,223,0.03);
+  }
+
+  /* ---------- gauge signature element ---------- */
+  .gauge-row{
+    display:flex;gap:18px;margin-top:52px;flex-wrap:wrap;
+  }
+  .gauge{
+    flex:1;min-width:150px;
+    background:var(--ink-2);
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius);
+    padding:16px 16px 14px;
+  }
+  .gauge svg{width:100%;height:auto;display:block;}
+  .gauge-label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    color:var(--text-low);margin-top:10px;display:flex;justify-content:space-between;
+  }
+  .gauge-label b{color:var(--text-hi);font-weight:600;}
+  .gauge.low .fill{fill:var(--olive);}
+  .gauge.medium .fill{fill:var(--mustard);}
+  .gauge.high .fill{fill:var(--tomato);}
+
+  /* ---------- section shell : "ticket" ---------- */
+  section{
+    position:relative;z-index:1;
+    padding:64px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .ticket-head{
+    display:flex;align-items:baseline;gap:14px;margin-bottom:8px;
+  }
+  .ticket-no{
+    font-family:var(--mono);font-size:13px;color:var(--mustard);
+    border:1px solid var(--mustard-dim);padding:3px 8px;border-radius:var(--radius);
+  }
+  h2{
+    font-family:var(--display);font-weight:400;
+    font-size:clamp(28px,4vw,42px);
+    letter-spacing:.01em;
+    margin:0;color:var(--text-hi);
+  }
+  .section-intro{
+    color:var(--text-mid);max-width:62ch;margin:14px 0 40px;font-size:16.5px;
+  }
+  .section-intro b{color:var(--text-hi);font-weight:600;}
+
+  /* ---------- card (parchment) ---------- */
+  .card{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:var(--radius);
+    padding:26px 28px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.35);
+    position:relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;top:0;left:24px;right:24px;height:0;
+    border-top:2px dashed var(--paper-line);
+  }
+  .card h3{
+    font-family:var(--display);font-weight:400;font-size:22px;
+    margin:0 0 10px;letter-spacing:.01em;color:var(--ink);
+  }
+  .card p{margin:0 0 12px;font-size:15px;color:#3a3527;}
+  .card p:last-child{margin-bottom:0;}
+  .card .mono-tag{
+    font-family:var(--mono);font-size:12px;color:var(--olive-dim);
+    background:rgba(109,126,70,0.1);padding:2px 7px;border-radius:var(--radius);
+  }
+
+  /* ---------- model section grid ---------- */
+  .model-grid{display:grid;grid-template-columns:1fr;gap:22px;}
+  @media(min-width:720px){.model-grid{grid-template-columns:1.1fr .9fr;}}
+  .spec-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;margin-top:6px;}
+  .spec-table td{padding:8px 0;border-bottom:1px solid var(--paper-line);vertical-align:top;}
+  .spec-table td:first-child{color:var(--olive-dim);width:38%;padding-right:10px;}
+  .spec-table td:last-child{color:#2a271e;}
+  .spec-table tr:last-child td{border-bottom:none;}
+
+  /* ---------- steps (order rail) ---------- */
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step;}
+  .step{
+    counter-increment:step;
+    display:grid;grid-template-columns:52px 1fr;gap:18px;
+    padding:20px 0;border-top:1px solid var(--paper-line);
+    align-items:start;
+  }
+  .step:first-child{border-top:none;}
+  .step-num{
+    font-family:var(--mono);color:var(--mustard);font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--mustard-dim);border-radius:50%;
+    width:40px;height:40px;
+  }
+  .step-num::before{content: counter(step, decimal-leading-zero);}
+  .step h4{
+    font-family:var(--body);font-weight:600;font-size:16.5px;
+    margin:6px 0 6px;color:var(--text-hi);
+  }
+  .step p{margin:0;color:var(--text-mid);font-size:14.5px;max-width:60ch;}
+  .step .tag{
+    font-family:var(--mono);font-size:11px;color:var(--olive);
+    text-transform:uppercase;letter-spacing:.06em;
+  }
+
+  /* ---------- dataset connections diagram ---------- */
+  .db-diagram{
+    background:var(--ink-2);border:1px solid var(--paper-line);border-radius:var(--radius);
+    padding:28px;margin-bottom:30px;
+  }
+  .db-diagram svg{width:100%;height:auto;display:block;}
+  .kitchens{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:26px;}
+  .kitchen-card{
+    border:1px solid var(--paper-line);border-radius:var(--radius);
+    padding:16px 18px;background:rgba(243,238,223,0.02);
+  }
+  .kitchen-card .kname{font-family:var(--mono);color:var(--mustard);font-size:12px;letter-spacing:.08em;}
+  .kitchen-card h5{font-family:var(--display);font-weight:400;font-size:22px;margin:6px 0 8px;color:var(--text-hi);}
+  .kitchen-card ul{margin:0;padding-left:18px;color:var(--text-mid);font-size:13.5px;}
+  .kitchen-card li{margin-bottom:3px;}
+
+  /* ---------- text transformation ---------- */
+  .compare{display:grid;grid-template-columns:1fr;gap:20px;}
+  @media(min-width:720px){.compare{grid-template-columns:1fr 1fr;}}
+  .compare .card small{
+    display:block;font-family:var(--mono);color:var(--olive-dim);
+    text-transform:uppercase;letter-spacing:.08em;font-size:11px;margin-bottom:10px;
+  }
+  .compare .card .example{
+    font-family:var(--mono);font-size:13.5px;line-height:1.65;
+    background:rgba(0,0,0,0.04);border-left:3px solid var(--mustard);
+    padding:12px 14px;color:#2a271e;
+  }
+  .compare .card.numeric .example{border-left-color:var(--tomato);}
+  .compare .card.bucket .example{border-left-color:var(--olive);}
+
+  .token-break{
+    margin-top:36px;background:var(--ink-2);border:1px solid var(--paper-line);
+    border-radius:var(--radius);padding:22px 24px;
+  }
+  .token-break h4{font-family:var(--body);font-weight:600;font-size:15px;margin:0 0 14px;color:var(--text-hi);}
+  .chips-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
+  .num-chip{
+    font-family:var(--mono);font-size:13px;background:rgba(193,67,45,0.14);
+    color:#e79b8c;border:1px solid rgba(193,67,45,0.4);
+    padding:4px 9px;border-radius:var(--radius);
+  }
+  .arrow{color:var(--text-low);font-family:var(--mono);}
+  .word-chip{
+    font-family:var(--mono);font-size:13px;background:rgba(109,126,70,0.16);
+    color:#c3d19b;border:1px solid rgba(109,126,70,0.4);
+    padding:4px 9px;border-radius:var(--radius);
+  }
+  .token-break p{margin:12px 0 0;color:var(--text-mid);font-size:13.5px;}
+
+  /* ---------- results ---------- */
+  .results-table-wrap{overflow-x:auto;margin-bottom:34px;}
+  table.results{
+    width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;
+    min-width:640px;background:var(--paper);color:var(--ink);border-radius:var(--radius);
+    box-shadow:0 12px 30px rgba(0,0,0,0.35);
+  }
+  table.results th{
+    text-align:left;font-family:var(--body);font-weight:600;font-size:12.5px;
+    text-transform:uppercase;letter-spacing:.04em;
+    padding:12px 14px;background:var(--ink);color:var(--text-mid);
+  }
+  table.results td{padding:10px 14px;border-top:1px solid var(--paper-line);}
+  table.results tr.highlight td{background:rgba(207,154,46,0.16);font-weight:600;}
+  table.results td:not(:first-child), table.results th:not(:first-child){text-align:right;}
+
+  .bars{display:flex;align-items:flex-end;gap:22px;height:200px;margin:36px 0 10px;padding:0 4px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .bar{
+    width:100%;max-width:56px;background:var(--olive);border-radius:2px 2px 0 0;
+    position:relative;transition:height 1s cubic-bezier(.2,.8,.2,1);
+    height:0;
+  }
+  .bar-col.win .bar{background:var(--mustard);}
+  .bar-val{font-family:var(--mono);font-size:12px;color:var(--text-hi);margin-bottom:8px;}
+  .bar-name{font-family:var(--mono);font-size:10.5px;color:var(--text-low);margin-top:10px;text-align:center;letter-spacing:.02em;}
+
+  .callout{
+    border-left:3px solid var(--mustard);
+    padding:4px 0 4px 20px;margin:30px 0;color:var(--text-mid);font-size:15.5px;
+  }
+  .callout b{color:var(--text-hi);}
+
+  .per-class{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:26px 0;}
+  .pc-card{background:var(--ink-2);border:1px solid var(--paper-line);border-radius:var(--radius);padding:16px;}
+  .pc-card .pc-label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-low);margin-bottom:6px;}
+  .pc-card .pc-f1{font-family:var(--display);font-size:34px;color:var(--text-hi);line-height:1;}
+  .pc-card.low .pc-f1{color:var(--olive);}
+  .pc-card.medium .pc-f1{color:var(--mustard);}
+  .pc-card.high .pc-f1{color:var(--tomato);}
+  .pc-card .pc-sub{font-family:var(--mono);font-size:11px;color:var(--text-low);margin-top:6px;}
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:48px 0 60px;position:relative;z-index:1;
+  }
+  footer .foot-grid{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-between;}
+  footer h5{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin:0 0 10px;}
+  footer p, footer li{color:var(--text-mid);font-size:13.5px;margin:0 0 4px;}
+  footer ul{list-style:none;padding:0;margin:0;}
+  footer a{color:var(--text-mid);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--paper-line);}
+  footer a:hover{color:var(--mustard);}
+  .stamp{
+    font-family:var(--mono);font-size:11px;color:var(--text-low);
+    margin-top:40px;padding-top:20px;border-top:1px dashed var(--paper-line);
+  }
+
+  [data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .7s ease, transform .7s ease;}
+  [data-reveal].in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="rail">
+  <div class="rail-brand"><span class="dot"></span> SI4006 · ENTREGA M1</div>
+  <div class="rail-nav">
+    <a href="#modelo">Modelo</a>
+    <a href="#pasos">Pasos</a>
+    <a href="#datos">Datos</a>
+    <a href="#texto">Texto</a>
+    <a href="#resultados">Resultados</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Fine-tuning eficiente · LoRA</p>
+    <h1 class="headline">¿Cuándo se llena<br>el bote de <em>la cocina</em>?</h1>
+    <p class="hero-sub">
+      Le enseñamos a un modelo de lenguaje a leer el estado de un contenedor de basura —qué tan
+      lleno está, cómo viene llenándose, qué hora es— y a anticipar si en la próxima hora va a
+      acumular <b style="color:var(--text-hi)">poca, media o mucha</b> basura. Así el personal de
+      cocina sabe cuándo vaciarlo antes de que se desborde.
+    </p>
+    <div class="hero-meta">
+      <span class="chip">DistilBERT + LoRA</span>
+      <span class="chip">Dataset: FIKWaste (Portugal, 2019)</span>
+      <span class="chip">3.306 ventanas horarias</span>
+      <span class="chip">F1-macro: 0.478 ± 0.027</span>
+    </div>
+
+    <div class="gauge-row" data-reveal>
+      <div class="gauge low">
+        <svg viewBox="0 0 120 90"><rect x="30" y="6" width="60" height="78" rx="4" fill="none" stroke="var(--steel)" stroke-width="3"/><rect class="fill" x="33" y="72" width="54" height="11" rx="2" opacity="0.9"/><line x1="30" y1="30" x2="90" y2="30" stroke="var(--paper-line)" stroke-dasharray="2 3"/></svg>
+        <div class="gauge-label">LOW <b>≤ 1 pt</b></div>
+      </div>
+      <div class="gauge medium">
+        <svg viewBox="0 0 120 90"><rect x="30" y="6" width="60" height="78" rx="4" fill="none" stroke="var(--steel)" stroke-width="3"/><rect class="fill" x="33" y="45" width="54" height="38" rx="2" opacity="0.9"/><line x1="30" y1="30" x2="90" y2="30" stroke="var(--paper-line)" stroke-dasharray="2 3"/></svg>
+        <div class="gauge-label">MEDIUM <b>1–8 pt</b></div>
+      </div>
+      <div class="gauge high">
+        <svg viewBox="0 0 120 90"><rect x="30" y="6" width="60" height="78" rx="4" fill="none" stroke="var(--steel)" stroke-width="3"/><rect class="fill" x="33" y="10" width="54" height="73" rx="2" opacity="0.9"/><line x1="30" y1="30" x2="90" y2="30" stroke="var(--paper-line)" stroke-dasharray="2 3"/></svg>
+        <div class="gauge-label">HIGH <b>&gt; 8 pt</b></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MODELO ================= -->
+  <section id="modelo">
+    <div class="ticket-head"><span class="ticket-no">01</span><h2>El modelo</h2></div>
+    <p class="section-intro">
+      Elegimos <b>DistilBERT</b> (<span class="mono-tag" style="color:var(--olive)">distilbert-base-uncased</span>,
+      66M parámetros) y lo afinamos con <b>LoRA</b> en vez de entrenarlo completo, para que corra en
+      una GPU T4 gratuita de Colab.
+    </p>
+
+    <div class="model-grid" data-reveal>
+      <div class="card">
+        <h3>¿Por qué encoder-only?</h3>
+        <p>
+          El objetivo de preentrenamiento debe encajar con la tarea. Los modelos encoder-only
+          (como BERT y sus derivados) se entrenan con <em>masked language modeling</em>: ven la
+          frase completa a la vez, en ambas direcciones. Eso es exactamente lo que necesitamos —
+          nuestra entrada es una descripción entera del contenedor que hay que leer completa
+          antes de decidir la categoría. No generamos texto nuevo, no traducimos: <b>clasificamos</b>.
+        </p>
+        <p>
+          ¿Y por qué el destilado y no BERT-base completo? Con solo ~2.700 ejemplos de
+          entrenamiento, el cuello de botella son los datos, no la capacidad del modelo.
+          DistilBERT retiene ~97% del desempeño de BERT con 40% menos parámetros: gastar el
+          doble de cómputo no compraría nada aquí.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Configuración de LoRA</h3>
+        <table class="spec-table">
+          <tr><td>rank (r)</td><td>8 — dataset pequeño y de plantilla fija; r=16+ memoriza</td></tr>
+          <tr><td>lora_alpha</td><td>16 — regla estándar alpha ≈ 2·r</td></tr>
+          <tr><td>lora_dropout</td><td>0.10 — regularización extra por dataset repetitivo</td></tr>
+          <tr><td>target_modules</td><td>q_lin, v_lin — atención query/value de DistilBERT</td></tr>
+          <tr><td>modules_to_save</td><td>pre_classifier, classifier — la cabeza es nueva y aleatoria</td></tr>
+          <tr><td>parámetros entrenados</td><td>740.355 de 67.696.134 <b>(1.09%)</b></td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PASOS ================= -->
+  <section id="pasos">
+    <div class="ticket-head"><span class="ticket-no">02</span><h2>Los pasos del notebook</h2></div>
+    <p class="section-intro">
+      El notebook corre de principio a fin en Colab gratuito. Estos son los pasos, en el orden
+      real en que ocurren — cada uno depende del anterior.
+    </p>
+
+    <ol class="steps" data-reveal>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Datos</span>
+          <h4>Descarga y exploración</h4>
+          <p>Se descarga FIKWaste directo desde OSF (o se usa la copia local del repo) y se exploran las 86.044 mediciones crudas de los sensores.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Preprocesamiento</span>
+          <h4>De señal de sensor a ventanas horarias</h4>
+          <p>Se agregan las lecturas a ventanas de 1 hora por cocina y contenedor (media, máximo, mínimo, número de lecturas) y se calculan features de historia: <span class="mono-tag">delta_1h</span>, <span class="mono-tag">delta_3h</span>, <span class="mono-tag">hours_since_disposal</span>.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Tarea</span>
+          <h4>Definición del target</h4>
+          <p>Se calcula cuánto va a subir el nivel del contenedor en la próxima hora y se convierte en tres clases: LOW, MEDIUM, HIGH. Se verifica con un <span class="mono-tag">assert</span> que el futuro no se filtre al texto de entrada.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Serialización</span>
+          <h4>Las dos representaciones de texto</h4>
+          <p>Cada ventana horaria se convierte en una frase en inglés, de dos formas distintas — numérica y bucketizada — para comparar cuál entiende mejor el modelo (ver sección 04).</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Split</span>
+          <h4>División temporal train / validation</h4>
+          <p>El primer 80% de los días de cada cocina va a entrenamiento; el 20% final, a validación. Nunca al azar — evita que horas del mismo día se filtren entre los dos conjuntos.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Baselines</span>
+          <h4>Clase mayoritaria y DistilBERT zero-shot</h4>
+          <p>Antes de afinar nada, se mide qué tan bien funcionan un punto de partida ingenuo (responder siempre "LOW") y el modelo base sin entrenar, completando la frase <span class="mono-tag">"The waste generation level is [MASK]."</span></p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Entrenamiento</span>
+          <h4>Pesos de clase + LoRA + Trainer API</h4>
+          <p>Se ponderan las clases (las minorías pesan más en la pérdida) y se entrena con LoRA, comparando distintas corridas: representación numérica vs. bucketizada, pesos duros vs. suaves.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num"></div>
+        <div>
+          <span class="tag">Evaluación</span>
+          <h4>Comparación, ejemplos y estabilidad</h4>
+          <p>Se arma la tabla comparativa contra los baselines y contra un árbol de decisión tabular, se muestran ejemplos cualitativos de entrada→salida, y se repite la mejor corrida con tres semillas distintas para medir qué tan estable es el resultado.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ================= DATOS ================= -->
+  <section id="datos">
+    <div class="ticket-head"><span class="ticket-no">03</span><h2>La base de datos</h2></div>
+    <p class="section-intro">
+      Usamos <b>FIKWaste</b>: datos reales de sensores ultrasónicos instalados en las tapas de los
+      contenedores de basura de <b>tres cocinas de restaurante en Portugal</b> (2019). No es un
+      dataset sintético — mide la distancia entre la tapa y la superficie del residuo, y esa
+      distancia se convierte en % de llenado. CC BY 4.0, con DOI.
+      <a href="https://doi.org/10.3390/data6030025" target="_blank" rel="noopener">Pereira, Aguiar &amp; Vasconcelos, Data 2021.</a>
+    </p>
+
+    <div class="db-diagram" data-reveal>
+      <svg viewBox="0 0 860 210" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono">
+        <!-- deployments -->
+        <rect x="20" y="20" width="220" height="80" rx="3" fill="none" stroke="#9aa3ad" stroke-width="1.5"/>
+        <text x="34" y="42" fill="#cf9a2e" font-size="12">deployments.csv</text>
+        <text x="34" y="62" fill="#c9c0a6" font-size="10.5">ID, service, area, capacity,</text>
+        <text x="34" y="78" fill="#c9c0a6" font-size="10.5">has_*, *_volume, start, end</text>
+
+        <!-- measurements -->
+        <rect x="320" y="20" width="220" height="80" rx="3" fill="none" stroke="#9aa3ad" stroke-width="1.5"/>
+        <text x="334" y="42" fill="#cf9a2e" font-size="12">measurements.csv</text>
+        <text x="334" y="62" fill="#c9c0a6" font-size="10.5">timestamp, distance (cm),</text>
+        <text x="334" y="78" fill="#c9c0a6" font-size="10.5">volume (% de llenado)</text>
+
+        <!-- labels -->
+        <rect x="620" y="20" width="220" height="80" rx="3" fill="none" stroke="#9aa3ad" stroke-width="1.5"/>
+        <text x="634" y="42" fill="#cf9a2e" font-size="12">labels.csv</text>
+        <text x="634" y="62" fill="#c9c0a6" font-size="10.5">timestamp, volume,</text>
+        <text x="634" y="78" fill="#c9c0a6" font-size="10.5">source (V=vídeo, H=humano)</text>
+
+        <!-- joins -->
+        <line x1="240" y1="60" x2="320" y2="60" stroke="#6d7e46" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="252" y="52" fill="#8fa05f" font-size="9.5">por cocina × contenedor</text>
+        <line x1="540" y1="60" x2="620" y2="60" stroke="#6d7e46" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+        <text x="548" y="52" fill="#8fa05f" font-size="9.5">merge_asof (tiempo)</text>
+
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#6d7e46"/>
+          </marker>
+        </defs>
+
+        <!-- down arrow to windows -->
+        <line x1="430" y1="100" x2="430" y2="140" stroke="#cf9a2e" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <defs>
+          <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#cf9a2e"/>
+          </marker>
+        </defs>
+
+        <rect x="230" y="145" width="400" height="55" rx="3" fill="none" stroke="#cf9a2e" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <text x="430" y="168" fill="#f6f1e3" font-size="12" text-anchor="middle">fikwaste_hourly_windows.csv</text>
+        <text x="430" y="186" fill="#c9c0a6" font-size="10.5" text-anchor="middle">3.306 ventanas horarias · 24 columnas</text>
+      </svg>
+    </div>
+
+    <div class="kitchens" data-reveal>
+      <div class="kitchen-card">
+        <span class="kname">COCINA 1</span>
+        <h5>Cena</h5>
+        <ul>
+          <li>58,15 m² · aforo 50</li>
+          <li>Papel, plástico, sin diferenciar</li>
+          <li>58.647 mediciones</li>
+          <li>Muestreo: cada minuto, 24h</li>
+        </ul>
+      </div>
+      <div class="kitchen-card">
+        <span class="kname">COCINA 2</span>
+        <h5>Cena</h5>
+        <ul>
+          <li>25,52 m² · aforo 50</li>
+          <li>+ vidrio</li>
+          <li>11.281 mediciones</li>
+          <li>Muestreo: cada 5 min, horario laboral</li>
+        </ul>
+      </div>
+      <div class="kitchen-card">
+        <span class="kname">COCINA 3</span>
+        <h5>Desayuno y cena</h5>
+        <ul>
+          <li>35,23 m² · aforo 40</li>
+          <li>+ vidrio</li>
+          <li>16.116 mediciones</li>
+          <li>Muestreo: cada 5 min, horario laboral</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Un sesgo a tener en cuenta:</b> la Cocina 1 mide cada minuto y 24h al día, mientras las
+      otras dos miden cada 5 minutos y solo en horario laboral. Eso hace que la Cocina 1 aporte
+      más ventanas de las que le corresponden por días monitoreados — el modelo queda algo sesgado
+      hacia su patrón particular de generación de residuos.
+    </div>
+  </section>
+
+  <!-- ================= TEXTO ================= -->
+  <section id="texto">
+    <div class="ticket-head"><span class="ticket-no">04</span><h2>De sensor a texto</h2></div>
+    <p class="section-intro">
+      FIKWaste es señal de sensor, no lenguaje. Para que DistilBERT lo pueda leer, cada ventana
+      horaria se convierte en una frase en inglés. Probamos <b>dos formas de hacerlo</b> con
+      exactamente las mismas variables.
+    </p>
+
+    <div class="compare" data-reveal>
+      <div class="card numeric">
+        <small>A · Numérica</small>
+        <h3>Los números tal cual</h3>
+        <div class="example">"The container is currently 86.2 percent full. Over the last hour the fill level changed by 16.4 points."</div>
+        <p style="margin-top:14px;">Precisa, pero el tokenizer de DistilBERT no sabe qué hacer con estos números.</p>
+      </div>
+      <div class="card bucket">
+        <small>B · Bucketizada</small>
+        <h3>Palabras que el modelo ya conoce</h3>
+        <div class="example">"The container is nearly full. Over the last hour the fill level rose sharply."</div>
+        <p style="margin-top:14px;">Pierde resolución (57% y 64% caen en el mismo bucket) — pero resultó ser la mejor apuesta.</p>
+      </div>
+    </div>
+
+    <div class="token-break" data-reveal>
+      <h4>¿Por qué funciona mejor la versión B? El tokenizer destruye la magnitud.</h4>
+      <div class="chips-row">
+        <span class="num-chip">57.0</span><span class="arrow">→</span>
+        <span class="num-chip">'57'</span><span class="num-chip">'.'</span><span class="num-chip">'0'</span>
+      </div>
+      <div class="chips-row">
+        <span class="num-chip">64.9</span><span class="arrow">→</span>
+        <span class="num-chip">'64'</span><span class="num-chip">'.'</span><span class="num-chip">'9'</span>
+      </div>
+      <p>
+        WordPiece parte <span class="mono-tag" style="color:#e79b8c">57.0</span> y
+        <span class="mono-tag" style="color:#e79b8c">64.9</span> en piezas que no comparten nada
+        entre sí, pese a estar a solo 8 puntos de distancia. El modelo no tiene forma de saber que
+        un número es "casi" otro.
+      </p>
+      <div class="chips-row" style="margin-top:16px;">
+        <span class="word-chip">about half full</span><span class="arrow">≈</span>
+        <span class="word-chip">more than half full</span>
+      </div>
+      <p>
+        En cambio, expresiones como estas comparten tokens y ya traen su orden semántico
+        aprendido del preentrenamiento en inglés general. Bucketizar los números — con cortes
+        calibrados sobre los percentiles reales del dataset, no a ojo — le da al modelo un idioma
+        que ya entiende.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= RESULTADOS ================= -->
+  <section id="resultados">
+    <div class="ticket-head"><span class="ticket-no">05</span><h2>Resultados</h2></div>
+    <p class="section-intro">
+      Métrica principal: <b>F1-macro</b> — promedia el desempeño de las tres clases por igual, sin
+      dejar que la clase mayoritaria (LOW) tape a la clase que más importa en operación: HIGH,
+      la que avisa de un pico de generación.
+    </p>
+
+    <div class="results-table-wrap" data-reveal>
+      <table class="results">
+        <tr><th>Modelo</th><th>Accuracy</th><th>Precision-m.</th><th>Recall-m.</th><th>F1-macro</th></tr>
+        <tr><td>Baseline: clase mayoritaria</td><td>0.6690</td><td>0.2230</td><td>0.3333</td><td>0.2672</td></tr>
+        <tr><td>Baseline: DistilBERT zero-shot</td><td>0.6690</td><td>0.2230</td><td>0.3333</td><td>0.2672</td></tr>
+        <tr><td>v1 · numérico + pesos duros</td><td>0.4137</td><td>0.4021</td><td>0.4434</td><td>0.3747</td></tr>
+        <tr><td>Run A · numérico + pesos suaves</td><td>0.6496</td><td>0.4556</td><td>0.3894</td><td>0.3859</td></tr>
+        <tr class="highlight"><td>Run B · bucketizado (prom. 3 semillas) ⭐</td><td>0.6508 ± 0.003</td><td>—</td><td>—</td><td>0.4784 ± 0.027</td></tr>
+        <tr><td>[referencia] Árbol tabular (HistGB)</td><td>0.6655</td><td>0.5021</td><td>0.4283</td><td>0.4335</td></tr>
+      </table>
+    </div>
+
+    <div class="bars" id="bars" data-reveal>
+      <div class="bar-col"><div class="bar-val">0.267</div><div class="bar" data-h="26.7"></div><div class="bar-name">zero-shot<br>(sin afinar)</div></div>
+      <div class="bar-col"><div class="bar-val">0.375</div><div class="bar" data-h="37.5"></div><div class="bar-name">v1<br>numérico</div></div>
+      <div class="bar-col"><div class="bar-val">0.386</div><div class="bar" data-h="38.6"></div><div class="bar-name">Run A<br>pesos suaves</div></div>
+      <div class="bar-col win"><div class="bar-val">0.478</div><div class="bar" data-h="47.8"></div><div class="bar-name">Run B<br>bucketizado ⭐</div></div>
+      <div class="bar-col"><div class="bar-val">0.434</div><div class="bar" data-h="43.4"></div><div class="bar-name">árbol<br>tabular</div></div>
+    </div>
+
+    <div class="callout">
+      <b>Lo que más pesó: cómo se le habla al modelo, no los pesos de clase.</b>
+      Cambiar la representación de texto (numérica → bucketizada) aportó +0.0925 de F1-macro;
+      suavizar los pesos de clase solo +0.0112 — ocho veces menos. El modelo afinado le gana con
+      claridad al zero-shot (+0.211) y queda por delante del árbol tabular en las tres semillas
+      probadas (+0.045 en promedio), aunque con solo tres semillas esa ventaja frente al árbol
+      todavía no es estadísticamente significativa.
+    </div>
+
+    <div class="per-class" data-reveal>
+      <div class="pc-card low">
+        <div class="pc-label">LOW · 380 casos</div>
+        <div class="pc-f1">0.78</div>
+        <div class="pc-sub">F1-score</div>
+      </div>
+      <div class="pc-card medium">
+        <div class="pc-label">MEDIUM · 127 casos</div>
+        <div class="pc-f1">0.34</div>
+        <div class="pc-sub">la clase que más falla</div>
+      </div>
+      <div class="pc-card high">
+        <div class="pc-label">HIGH · 61 casos</div>
+        <div class="pc-f1">0.39</div>
+        <div class="pc-sub">la que más importa operar</div>
+      </div>
+    </div>
+
+    <p class="section-intro" style="margin-top:0;">
+      Traducido a la práctica: el modelo v1 (numérico) lanzaba 152 alarmas de HIGH para solo 61
+      picos reales —una de cada cinco acertaba—. El modelo final (Run B) lanza 68 alarmas y
+      acierta 25: <b>una de cada 2.7</b>. Todavía no es un sistema listo para producción, pero ya
+      no es una alarma que se ignora sola. Donde más falla es en la clase MEDIUM, la banda
+      intermedia sin un límite natural, y en las ventanas sin historial previo de vaciado.
+    </p>
+  </section>
+
+  <footer>
+    <div class="foot-grid">
+      <div>
+        <h5>Dataset</h5>
+        <p>FIKWaste — Pereira, Aguiar &amp; Vasconcelos (2021)</p>
+        <p><a href="https://doi.org/10.3390/data6030025" target="_blank" rel="noopener">doi.org/10.3390/data6030025</a></p>
+        <p>CC BY 4.0 · <a href="https://osf.io/tyaj6/" target="_blank" rel="noopener">osf.io/tyaj6</a></p>
+      </div>
+      <div>
+        <h5>Curso</h5>
+        <p>SI4006 · Tópicos Especiales y Aplicaciones en IA</p>
+        <p>Universidad EAFIT · Entrega M1</p>
+      </div>
+      <div>
+        <h5>Stack</h5>
+        <p>transformers · peft (LoRA) · Trainer API</p>
+        <p>Google Colab · GPU T4</p>
+      </div>
+    </div>
+    <div class="stamp">Semilla fijada en 42 (y replicado con 202, 1337) · corre completo en Colab gratuito.</div>
+  </footer>
+
+</div>
+
+<script>
+  // reveal-on-scroll
+  const revealEls = document.querySelectorAll('[data-reveal]');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.15});
+  revealEls.forEach(el=>io.observe(el));
+
+  // gauge fill animation on load
+  window.addEventListener('load', ()=>{
+    document.querySelectorAll('.gauge .fill').forEach((r,i)=>{
+      r.style.transition='height .9s ease, y .9s ease';
+    });
+  });
+
+  // bars animate to height when visible
+  const barsEl = document.getElementById('bars');
+  const barIo = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.querySelectorAll('.bar').forEach(b=>{
+          const h = parseFloat(b.getAttribute('data-h'));
+          requestAnimationFrame(()=>{ b.style.height = h*3.6+'px'; });
+        });
+        barIo.unobserve(e.target);
+      }
+    });
+  },{threshold:0.3});
+  if(barsEl) barIo.observe(barsEl);
+</script>
+
+</body>
+</html>
