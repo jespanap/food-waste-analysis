@@ -1,8 +1,12 @@
-# ¿Podrían los restaurantes predecir la cantidad de residuos orgánicos a tiempo para sacar algún beneficio de esto?
+# ¿Pueden los restaurantes anticipar cuánto aumentará el nivel de residuos de un contenedor?
+
+**Este sistema ayuda a restaurantes a anticipar si el nivel de residuos de un contenedor aumentará poco, moderadamente o mucho durante la siguiente hora.** El objetivo es utilizar esta predicción como apoyo para tomar decisiones oportunas sobre la gestión de residuos.
 
 ## Fine-tuning de DistilBERT sobre FIKWaste
 
-Este sistema ayuda a restaurantes a anticipar si el nivel de residuos de un contenedor aumentará poco, moderadamente o mucho durante la siguiente hora, y se busca que con esta respuesta puedan hacer algo con esa comida restante, ya sea para donar o vender a un menor precio, y no se deperdicie. Usamos FIKWaste para clasificar el aumento de residuos de un contenedor durante la siguiente hora en tres categorías: `LOW`, `MEDIUM` y `HIGH`.
+Usamos el dataset FIKWaste para clasificar el incremento del nivel de llenado de un contenedor durante la siguiente hora en tres categorías: `LOW`, `MEDIUM` y `HIGH`.
+
+El modelo utiliza **DistilBERT (`distilbert-base-uncased`)**, de la familia **encoder-only**, adaptado mediante **LoRA**. Esta elección corresponde a una tarea de clasificación: el modelo recibe una descripción del estado actual del contenedor y debe asignarla a una de tres categorías, en lugar de generar texto.
 
 ## Cómo correrlo
 
@@ -31,6 +35,14 @@ La versión `M1_finetuning_LoRA_FIKWaste.ipynb` corresponde a la primera iteraci
 │   └── processed/
 └── legacy/
 ```
+
+## Dataset
+
+La descripción completa del dataset, su fuente, tamaño, licencia, tarea y limitaciones se encuentra en [docs/DATASET.md](docs/DATASET.md).
+
+## Resultados
+
+Los resultados y análisis se encuentran en [docs/RESULTADOS.md](docs/RESULTADOS.md).
 
 ## Requisitos
 
